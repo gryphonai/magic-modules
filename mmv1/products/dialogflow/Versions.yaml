@@ -20,12 +20,12 @@ references:
     'Official Documentation': 'https://cloud.google.com/dialogflow/docs/'
   api: 'https://cloud.google.com/dialogflow/docs/reference/rest/v2/projects/agent/versions'
 docs:
-id_format: 'projects/{{project}}/agent/versions/{{version_number}}'
+id_format: '{{name}}'
 base_url: 'projects/{{project}}/agent/versions'
-self_link: 'projects/{{project}}/agent/versions/{{version_number}}'
+self_link: '{{name}}'
 update_verb: 'PATCH'
 import_format:
-  - 'projects/{{project}}/agent/versions/{{version_number}}'
+  - '{{name}}'
 timeouts:
   insert_minutes: 40
   update_minutes: 40
