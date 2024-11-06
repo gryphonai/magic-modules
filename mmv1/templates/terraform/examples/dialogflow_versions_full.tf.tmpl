@@ -1,0 +1,8 @@
+resource "google_dialogflow_agent" "basic_agent" {
+  display_name = "example_agent"
+  default_language_code = "en-us"
+  time_zone = "America/New_York"
+}
+resource "google_dialogflow_versions" "{{$.PrimaryResourceId}}" {
+  description = "{{index $.Vars "version_description"}}"
+}
