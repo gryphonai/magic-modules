@@ -7,13 +7,14 @@ references:
     'Official Documentation': 'https://cloud.google.com/dialogflow/docs/'
   api: 'https://cloud.google.com/dialogflow/docs/reference/rest/v2/projects/environment'
 docs:
-# Only one agent per project, API does not have an agent ID
-id_format: '{{project}}'
-base_url: 'projects/{{project}}/agent/environments'
-self_link: 'projects/{{project}}/agent/environments'
-update_verb: 'POST'
+id_format: 'projects/{{project}}/locations/{{location}}/agent/environments/{{environmentid}}'
+base_url: 'projects/{{project}}/locations/{{location}}/agent/environments/{{environmentid}}'
+create_url: 'projects/{{project}}/locations/{{location}}/agent/environments/?environmentId={{environmentid}}'
+self_link: 'projects/{{project}}/locations/{{location}}/agent/environments/{{environmentid}}'
+update_verb: 'PATCH'
+update_mask: true
 import_format:
-  - '{{project}}'
+  - 'projects/{{project}}/locations/{{location}}/agent/environments/{{environmentid}}'
 timeouts:
   insert_minutes: 40
   update_minutes: 40
@@ -22,6 +23,14 @@ custom_code:
 exclude_sweeper: true
 examples:
 parameters:
+  - name: 'environmentid'
+    type: String
+    url_param_only: true
+    required: true
+  - name: 'location'
+    type: String
+    url_param_only: true
+    default_value: 'global'
 properties:
   - name: 'name'
     type: String
