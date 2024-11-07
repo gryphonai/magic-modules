@@ -22,6 +22,10 @@ timeouts:
 custom_code:
 exclude_sweeper: true
 examples:
+  - name: 'dialogflow_environment_basic'
+    primary_resource_id: 'basic_environment'
+    vars:
+      environment_id: 'example_environment'
 parameters:
   - name: 'environmentid'
     type: String
