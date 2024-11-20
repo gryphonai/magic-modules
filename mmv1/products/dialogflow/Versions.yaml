@@ -33,10 +33,6 @@ timeouts:
 custom_code:
 exclude_sweeper: true
 examples:
-  - name: 'dialogflow_versions_full'
-    primary_resource_id: 'version'
-    vars:
-      profile_name: 'agent-version'
 parameters:
 properties:
   - name: 'name'

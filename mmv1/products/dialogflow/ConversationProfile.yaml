@@ -36,10 +36,6 @@ custom_code:
   custom_import: 'templates/terraform/custom_import/self_link_as_name_set_project.go.tmpl'
 exclude_sweeper: true
 examples:
-  - name: 'dialogflow_conversation_profile_basic'
-    primary_resource_id: 'basic_profile'
-    vars:
-      profile_name: 'dialogflow-profile'
 parameters:
   - name: 'location'
     type: String
