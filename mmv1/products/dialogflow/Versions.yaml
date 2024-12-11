@@ -24,6 +24,7 @@ id_format: '{{name}}'
 base_url: 'projects/{{project}}/agent/versions'
 self_link: '{{name}}'
 update_verb: 'PATCH'
+update_mask: true
 import_format:
   - '{{name}}'
 timeouts:
