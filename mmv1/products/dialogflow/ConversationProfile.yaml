@@ -118,7 +118,6 @@ properties:
                       description: |
                         Type of Human Agent Assistant API feature to request.
                       enum_values:
-                        - TYPE_UNSPECIFIED
                         - ARTICLE_SUGGESTION
                         - FAQ
                         - SMART_REPLY
