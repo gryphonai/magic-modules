@@ -16,6 +16,6 @@ name: 'Dialogflow'
 display_name: 'Dialogflow'
 versions:
   - name: 'ga'
-    base_url: 'https://dialogflow.googleapis.com/v2/'
+    base_url: 'https://dialogflow.googleapis.com/v2beta1/'
 scopes:
   - 'https://www.googleapis.com/auth/cloud-platform'
