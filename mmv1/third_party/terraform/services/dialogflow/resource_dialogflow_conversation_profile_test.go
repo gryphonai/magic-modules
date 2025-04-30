@@ -41,7 +41,7 @@ func TestAccDialogflowConversationProfile_update(t *testing.T) {
 				Config: testAccDialogflowConversationProfile_dialogflowAgentFull1(context),
 			},
 			{
-				ResourceName:            "google_dialogflow_convesation_profile.profile",
+				ResourceName:            "google_dialogflow_conversation_profile.profile",
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"location"},
@@ -50,7 +50,7 @@ func TestAccDialogflowConversationProfile_update(t *testing.T) {
 				Config: testAccDialogflowConversationProfile_dialogflowAgentFull2(context),
 			},
 			{
-				ResourceName:            "google_dialogflow_convesation_profile.profile",
+				ResourceName:            "google_dialogflow_conversation_profile.profile",
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"location"},
@@ -58,57 +58,57 @@ func TestAccDialogflowConversationProfile_update(t *testing.T) {
 		},
 	})
 }
-
+//TODO make sure to flip agent back
+//Flip topics from leftover topics to resources within this tf
 func testAccDialogflowConversationProfile_dialogflowAgentFull1(context map[string]interface{}) string {
 return acctest.Nprintf(`
-	resource "google_project" "agent_project" {
-		name = "tf-test-dialogflow-%{random_suffix}"
-		project_id = "tf-test-dialogflow-%{random_suffix}"
-		org_id     = "%{org_id}"
-		billing_account = "%{billing_account}"
-	}
+		#	resource "google_project" "agent_project" {
+		#		name = "tf-test-dialogflow-%{random_suffix}"
+		#		project_id = "tf-test-dialogflow-%{random_suffix}"
+		#		org_id     = "%{org_id}"
+		#		billing_account = "%{billing_account}"
+		#	}
 
-	resource "google_project_service" "agent_project" {
-		project = google_project.agent_project.project_id
-		service = "dialogflow.googleapis.com"
-		disable_dependent_services = false
-	}
+		#	resource "google_project_service" "agent_project" {
+		#		project = "gryphon-operations-kmatthews"
+		#		service = "dialogflow.googleapis.com"
+		#		disable_dependent_services = false
+		#	}
 
-	resource "google_service_account" "dialogflow_service_account" {
-		account_id = "tf-test-dialogflow-%{random_suffix}"
-	}
+		#	resource "google_service_account" "dialogflow_service_account" {
+		#account_id = "tf-test-dialogflow-%{random_suffix}"
+		#	}
 
-	resource "google_project_iam_member" "agent_create" {
-		project = google_project_service.agent_project.project
-		role    = "roles/dialogflow.admin"
-		member  = "serviceAccount:${google_service_account.dialogflow_service_account.email}"
-	}
+		#	resource "google_project_iam_member" "agent_create" {
+		#		project = "gryphon-operations-kmatthews"
+		#		role    = "roles/dialogflow.admin"
+		#		member  = "serviceAccount:${google_service_account.dialogflow_service_account.email}"
+		#	}
 
-	resource "google_dialogflow_agent" "agent" {
-		project = google_project.agent_project.project_id
-		display_name = "tf-test-agent-%{random_suffix}"
-		default_language_code = "en-us"
-		time_zone = "America/New_York"
-		depends_on = [google_project_iam_member.agent_create]
-	}
+		#	resource "google_dialogflow_agent" "agent" {
+		#		project = "gryphon-operations-kmatthews"
+		#		display_name = "tf-test-agent-%{random_suffix}"
+		#		default_language_code = "en-us"
+		#		time_zone = "America/New_York"
+		#		depends_on = [google_project_iam_member.agent_create]
+		#	}
 	
 	resource "google_dialogflow_conversation_profile" "profile" {
-		depends_on    = [google_dialogflow_agent.agent]
-		project       = google_project.agent_project.project_id
+		#depends_on    = [google_dialogflow_agent.agent]
+		project       = "gryphon-operations-kmatthews"
 		display_name  = "tf-test-conversation-profile-%{random_suffix}"
+		location = "global"
 		language_code = "en-US"
         	automated_agent_config {
-            		agent = "projects/${google_dialogflow_agent.agent.id}/agent/environments/draft"
-	    		session_ttl = 30
+            		agent = "projects/gryphon-operations-kmatthews/locations/global/agent/environments/draft"
+	    		session_ttl = "30s"
         	}
 		human_agent_assistant_config {
 			end_user_suggestion_config {
 				disable_high_latency_features_sync_delivery = true
 				feature_configs {
 					conversation_model_config {
-						#TODO MANUALLY CREATE SOME MODEL VERSION?
-						baseline_model_version = projects/${google_project.agent_project.project_id}/conversationModels/mymodel.
-						model                  = "1.0"
+						model                  = "projects/gryphon-operations-kmatthews/locations/global/conversationModels/43277ed5ce78441d"
 					}
 					conversation_process_config {
 						recent_sentences_count = 1 
@@ -117,7 +117,7 @@ return acctest.Nprintf(`
 					enable_conversation_augmented_query    = true 
 					enable_event_based_suggestion          = true
  					enable_query_suggestion_when_no_answer = true
-					enable_query_suggetio_only             = true
+					enable_query_suggestion_only            = true
 					query_config {
 						confidence_threshold = "1.0"
 						context_filter_settings {
@@ -126,34 +126,32 @@ return acctest.Nprintf(`
 							drop_virtual_agent_messages = true
 						}
 						dialogflow_query_source {
-							agent = "projects/${google_dialogflow_agent.agent.id}/agent/environments/draft"
+							agent = "projects/gryphon-operations-kmatthews/locations/global/agent/environments/draft"
 							human_agent_side_config {
-								agent = "projects/${google_dialogflow_agent.agent.id}/agent/environments/draft"
+								agent = "projects/gryphon-operations-kmatthews/locations/global/agent/environments/draft"
 							}
 						}
 						max_results = 1 
 						sections {
-							section_types = "SECTION_TYPE_UNSPECIFIED"
+							section_types = ["SECTION_TYPE_UNSPECIFIED"]
 						}
 					}
 					suggestion_feature {
-						type =  "TYPE_UNSPECIFIED"
+						type =  "DIALOGFLOW_ASSIST"
 					}
 					suggestion_trigger_settings {
 						no_small_talk = true
 						only_end_user = true
 					}
 				}
-				generators                  = #TODO
-				group_suggestions_responses = true
+				generators                  = ["projects/gryphon-operations-kmatthews/locations/global/generators/NDM5MDEwODcyNDM0NjIyNDY0MQ"]
+				group_suggestion_responses = true
 			}
-		}
 		human_agent_suggestion_config {
 			disable_high_latency_features_sync_delivery = true
 			feature_configs {
 				conversation_model_config {
-					baseline_model_version = 1.0
-					model                  = #TODO model
+					model                  = "projects/gryphon-operations-kmatthews/locations/global/conversationModels/43277ed5ce78441d"
 				}
 				conversation_process_config {
 					recent_sentences_count = 1
@@ -162,7 +160,7 @@ return acctest.Nprintf(`
 				enable_conversation_augmented_query    = true
 				enable_event_based_suggestion          = true
 				enable_query_suggestion_when_no_answer = true
-				enable_query_suggetio_only             = true
+				enable_query_suggestion_only            = true
 				query_config {
 					confidence_threshold = 0.1
 					context_filter_settings {
@@ -171,71 +169,72 @@ return acctest.Nprintf(`
 						drop_virtual_agent_messages = true
 					}
 	  				dialogflow_query_source {
-						agent = "projects/${google_dialogflow_agent.agent.id}/agent/environments/draft"
+						agent = "projects/gryphon-operations-kmatthews/locations/global/agent/environments/draft"
 						human_agent_side_config {
-							agent = "projects/${google_dialogflow_agent.agent.id}/agent/environments/draft"
+							agent = "projects/gryphon-operations-kmatthews/locations/global/agent/environments/draft"
 						}
 					}
 					max_results = 1
 					sections {
-						section_types = "SECTION_TYPE_UNSPECIFIED"
+						section_types = ["SECTION_TYPE_UNSPECIFIED"]
 					}
 				}
 				suggestion_feature {
-					type = "TYPE_UNSPECIFIED"
+					type = "DIALOGFLOW_ASSIST"
 				}
 				suggestion_trigger_settings {
 					no_small_talk = true
 					only_end_user = true
 				}
 			}
-			generators                  = #TODO
-			group_suggestions_responses = true
+			generators                  = ["projects/gryphon-operations-kmatthews/locations/global/generators/NDM5MDEwODcyNDM0NjIyNDY0MQ"]
+			group_suggestion_responses = true
 		}
 		notification_config {
 			message_format = "JSON"
-			topic          = #TODO
+		topic          = "projects/gryphon-operations-kmatthews/topics/container-analysis-notes-v1"
+		}
 		}
   human_agent_handoff_config {
     live_person_config {
       account_number = "00"
     }
-    salesforce_live_agent_config {
-      button_id       = "button"
-      deployment_id   = "id"
-      endpoint_domain = "domain"
-      organization_id = "org_id"
-    }
+		#salesforce_live_agent_config {
+		#      button_id       = "button"
+		#      deployment_id   = "id"
+		#      endpoint_domain = "domain"
+		#      organization_id = "org_id"
+		#}
   }
   logging_config {
     enable_stackdriver_logging = true
   }
   new_message_event_notification_config {
     message_format = "JSON"
-    topic          = #TODO
+    topic          = "projects/gryphon-operations-kmatthews/topics/container-analysis-notes-v1"
   }
   notification_config {
     message_format = "JSON"
-    topic          = #TODO
+    topic          = "projects/gryphon-operations-kmatthews/topics/container-analysis-notes-v1"
   }
-  security_settings = #TODO
+  security_settings = "projects/gryphon-operations-kmatthews/locations/global/securitySettings/8eb9889250e643b1"
   stt_config {
-    audo_encoding                 = "AUDIO_ENCODING_UNSPECIFIED"
     enable_word_info              = true
     language_code                 = "en-US"
     model                         = "phone_call"
     sample_rate_hertz             = 1000
-    speech_model_variant          = "SPEECH_MODEL_VARIANT_UNSPECIFIED"
+    speech_model_variant          = "USE_ENHANCED"
     use_timeout_based_endpointing = true
   }
-  time_zone = "America/New_York"
+		#TODO why is this not reflected?
+		#time_zone = "Europe/Paris"
   tts_config {
     effects_profile_id = ["id"]
     pitch              = 1
     speaking_rate      = 1
     voice {
       name        = "john"
-      ssml_gender = "SSML_VOICE_GENDER_UNSPECIFIED"
+      ssml_gender = "SSML_VOICE_GENDER_MALE"
     }
     volume_gain_db = 5
   }
@@ -245,52 +244,163 @@ return acctest.Nprintf(`
 }
 func testAccDialogflowConversationProfile_dialogflowAgentFull2(context map[string]interface{}) string {
 return acctest.Nprintf(`
-	resource "google_project" "agent_project" {
-		name = "tf-test-dialogflow-%{random_suffix}"
-		project_id = "tf-test-dialogflow-%{random_suffix}"
-		org_id     = "%{org_id}"
-		billing_account = "%{billing_account}"
-	}
+		#	resource "google_project" "agent_project" {
+		#		name = "tf-test-dialogflow-%{random_suffix}"
+		#		project_id = "tf-test-dialogflow-%{random_suffix}"
+		#		org_id     = "%{org_id}"
+		#		billing_account = "%{billing_account}"
+		#	}
 
-	resource "google_project_service" "agent_project" {
-		project = google_project.agent_project.project_id
-		service = "dialogflow.googleapis.com"
-		disable_dependent_services = false
-	}
+		#	resource "google_project_service" "agent_project" {
+		#		project = "gryphon-operations-kmatthews"
+		#		service = "dialogflow.googleapis.com"
+		#		disable_dependent_services = false
+		#	}
 
-	resource "google_service_account" "dialogflow_service_account" {
-		account_id = "tf-test-dialogflow-%{random_suffix}"
-	}
+		#	resource "google_service_account" "dialogflow_service_account" {
+		#account_id = "tf-test-dialogflow-%{random_suffix}"
+		#	}
 
-	resource "google_project_iam_member" "agent_create" {
-		project = google_project_service.agent_project.project
-		role    = "roles/dialogflow.admin"
-		member  = "serviceAccount:${google_service_account.dialogflow_service_account.email}"
-	}
+		#	resource "google_project_iam_member" "agent_create" {
+		#		project = "gryphon-operations-kmatthews"
+		#		role    = "roles/dialogflow.admin"
+		#		member  = "serviceAccount:${google_service_account.dialogflow_service_account.email}"
+		#	}
 
-	resource "google_dialogflow_agent" "agent" {
-		project = google_project.agent_project.project_id
-		display_name = "tf-test-agent-%{random_suffix}"
-		default_language_code = "en-us"
-		time_zone = "America/New_York"
-		depends_on = [google_project_iam_member.agent_create]
-	}
+		#	resource "google_dialogflow_agent" "agent" {
+		#		project = "gryphon-operations-kmatthews"
+		#		display_name = "tf-test-agent-%{random_suffix}"
+		#		default_language_code = "en-us"
+		#		time_zone = "America/New_York"
+		#		depends_on = [google_project_iam_member.agent_create]
+		#	}
 	
 	resource "google_dialogflow_conversation_profile" "profile" {
-		depends_on    = [google_dialogflow_agent.agent]
-		project       = google_project.agent_project.project_id
-		display_name  = "tf-test-conversation-profile-%{random_suffix}"
-		language_code = "en-US"
-        automated_agent_config {
-            agent = "projects/${google_dialogflow_agent.agent.id}/agent/environments/draft"
-        }
-        
-        human_agent_assistant_config {
-            message_analysis_config {
-                enable_entity_extraction  = true
-                enable_sentiment_analysis = true
-            }
-        }
+		#depends_on    = [google_dialogflow_agent.agent]
+		project       = "gryphon-operations-kmatthews"
+		display_name  = "tf-test-conversation-profile-%{random_suffix}-new"
+		location = "global"
+		language_code = "fr"
+        	automated_agent_config {
+            		agent = "projects/gryphon-operations-kmatthews/locations/global/agent/environments/draft2"
+	    		session_ttl = "31s"
+        	}
+		human_agent_assistant_config {
+			end_user_suggestion_config {
+				disable_high_latency_features_sync_delivery = false
+				feature_configs {
+					conversation_model_config {
+						model                  = "projects/gryphon-operations-kmatthews/locations/global/conversationModels/34498444b41199d4"
+					}
+					conversation_process_config {
+						recent_sentences_count = 2 
+					}
+					disable_agent_query_logging            = false
+					enable_conversation_augmented_query    = false 
+					enable_event_based_suggestion          = false
+ 					enable_query_suggestion_when_no_answer = false
+					enable_query_suggestion_only            = false
+					query_config {
+						confidence_threshold = "0.9"
+						context_filter_settings {
+							drop_handoff_messages       = false
+							drop_ivr_messages           = false
+							drop_virtual_agent_messages = false
+						}
+						dialogflow_query_source {
+							agent = "projects/gryphon-operations-kmatthews/locations/global/agent/environments/draft2"
+							human_agent_side_config {
+								agent = "projects/gryphon-operations-kmatthews/locations/global/agent/environments/draft2"
+							}
+						}
+						max_results = 2 
+						sections {
+							section_types = ["SITUATION"]
+						}
+					}
+					suggestion_feature {
+						type =  "DIALOGFLOW_ASSIST"
+					}
+					suggestion_trigger_settings {
+						no_small_talk = false
+						only_end_user = false
+					}
+				}
+				generators                  = ["projects/gryphon-operations-kmatthews/locations/global/generators/MTM4Mzk2MTA3MjA2MTU5MjM3MTM"]
+				group_suggestion_responses = false
+			}
+		human_agent_suggestion_config {
+			disable_high_latency_features_sync_delivery = false
+			feature_configs {
+				conversation_model_config {
+					model                  = "projects/gryphon-operations-kmatthews/locations/global/conversationModels/43277ed5ce78441d"
+				}
+				conversation_process_config {
+					recent_sentences_count = 2
+				}
+				disable_agent_query_logging            = false
+				enable_conversation_augmented_query    = false
+				enable_event_based_suggestion          = false
+				enable_query_suggestion_when_no_answer = false
+				enable_query_suggestion_only            = false
+				query_config {
+					confidence_threshold = 0.2
+					context_filter_settings {
+						drop_handoff_messages       = false
+						drop_ivr_messages           = false
+						drop_virtual_agent_messages = false
+					}
+	  				dialogflow_query_source {
+						agent = "projects/gryphon-operations-kmatthews/locations/global/agent/environments/draft2"
+						human_agent_side_config {
+							agent = "projects/gryphon-operations-kmatthews/locations/global/agent/environments/draft2"
+						}
+					}
+					max_results = 2
+					sections {
+						section_types = ["SITUATION"]
+					}
+				}
+				suggestion_feature {
+					type = "DIALOGFLOW_ASSIST"
+				}
+				suggestion_trigger_settings {
+					no_small_talk = false
+					only_end_user = false
+				}
+			}
+			generators                  = ["projects/gryphon-operations-kmatthews/locations/global/generators/MTM4Mzk2MTA3MjA2MTU5MjM3MTM"]
+			group_suggestion_responses = false
+		}
+		notification_config {
+			message_format = "PROTO"
+		#TODO remove dummy topic with 
+		topic          = "projects/gryphon-operations-kmatthews/topics/container-analysis-occurrences-v1"
+		}
+		}
+  human_agent_handoff_config {
+    live_person_config {
+      account_number = "01"
+    }
+		#salesforce_live_agent_config {
+		#      button_id       = "button"
+		#      deployment_id   = "id"
+		#      endpoint_domain = "domain"
+		#      organization_id = "org_id"
+		#}
+  }
+  logging_config {
+    enable_stackdriver_logging = false
+  }
+  new_message_event_notification_config {
+    message_format = "PROTO"
+    topic          = "projects/gryphon-operations-kmatthews/topics/container-analysis-occurrences-v1"
+  }
+  notification_config {
+    message_format = "PROTO"
+    topic          = "projects/gryphon-operations-kmatthews/topics/container-analysis-occurrences-v1"
+  }
+  security_settings = "projects/gryphon-operations-kmatthews/locations/global/securitySettings/3bff22a0a17aabb2"
 	}
 	`, context)
 }

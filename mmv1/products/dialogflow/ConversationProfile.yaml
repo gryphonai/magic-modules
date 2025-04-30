@@ -125,6 +125,7 @@ properties:
                         - KNOWLEDGE_SEARCH
                         - KNOWLEDGE_ASSIST
                         - DIALOGFLOW_ASSIST
+                        - ENTITY_EXTRACTION
                 - type: Boolean
                   name: 'enableEventBasedSuggestion'
                   description: |
@@ -146,7 +147,7 @@ properties:
                     Enable including conversation context during query answer generation.
                     This feature is only supported for types: KNOWLEDGE_SEARCH.
                 - type: Boolean
-                  name: 'enableQuerySuggetioOnly'
+                  name: 'enableQuerySuggestionOnly'
                   description: |
                     Enable query suggestion only.
                     This feature is only supported for types: KNOWLEDGE_ASSIST
@@ -288,7 +289,7 @@ properties:
                       description: |
                         Number of recent non-small-talk sentences to use as context for article and FAQ suggestion
           - type: Boolean
-            name: 'groupSuggestionsResponses'
+            name: 'groupSuggestionResponses'
             description: |
               If groupSuggestionResponses is false, and there are multiple featureConfigs in event based suggestion or StreamingAnalyzeContent, we will try to deliver suggestions to customers as soon as we get new suggestion. Different type of suggestions based on the same context will be in separate Pub/Sub event or StreamingAnalyzeContentResponse.
 
@@ -332,6 +333,7 @@ properties:
                         - KNOWLEDGE_SEARCH
                         - KNOWLEDGE_ASSIST
                         - DIALOGFLOW_ASSIST
+                        - ENTITY_EXTRACTION
                 - type: Boolean
                   name: 'enableEventBasedSuggestion'
                   description: |
@@ -353,7 +355,7 @@ properties:
                     Enable including conversation context during query answer generation.
                     This feature is only supported for types: KNOWLEDGE_SEARCH.
                 - type: Boolean
-                  name: 'enableQuerySuggetioOnly'
+                  name: 'enableQuerySuggestionOnly'
                   description: |
                     Enable query suggestion only.
                     This feature is only supported for types: KNOWLEDGE_ASSIST
@@ -495,7 +497,7 @@ properties:
                       description: |
                         Number of recent non-small-talk sentences to use as context for article and FAQ suggestion
           - type: Boolean
-            name: 'groupSuggestionsResponses'
+            name: 'groupSuggestionResponses'
             description: |
               If groupSuggestionResponses is false, and there are multiple featureConfigs in event based suggestion or StreamingAnalyzeContent, we will try to deliver suggestions to customers as soon as we get new suggestion. Different type of suggestions based on the same context will be in separate Pub/Sub event or StreamingAnalyzeContentResponse.
 
@@ -636,7 +638,7 @@ properties:
           Which Speech model to select.
           Leave this field unspecified to use Agent Speech settings for model selection.
       - type: Enum
-        name: 'audoEncoding'
+        name: 'audioEncoding'
         description: |
           Audio encoding of the audio content to process.
         enum_values:
