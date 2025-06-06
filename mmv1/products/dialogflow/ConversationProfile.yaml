@@ -155,6 +155,7 @@ properties:
                   description: |
                     Settings of suggestion trigger.
                     This feature is only supported for types: ARTICLE_SUGGESTION, FAQ.
+                  custom_flatten: 'templates/terraform/custom_flatten/conversation_profile_suggestion_trigger_settings.go.tmpl'
                   properties:
                     - type: Boolean
                       name: 'noSmallTalk'
@@ -183,6 +184,7 @@ properties:
                       name: contextFilterSettings
                       description: |
                         Determines how recent conversation context is filtered when generating suggestions. If unspecified, no messages will be dropped.
+                      custom_flatten: 'templates/terraform/custom_flatten/conversation_profile_context_filter_settings.go.tmpl'
                       properties:
                         - type: Boolean
                           name: 'dropHandoffMessages'
@@ -363,6 +365,7 @@ properties:
                   description: |
                     Settings of suggestion trigger.
                     This feature is only supported for types: ARTICLE_SUGGESTION, FAQ.
+                  custom_flatten: 'templates/terraform/custom_flatten/conversation_profile_suggestion_trigger_settings.go.tmpl'
                   properties:
                     - type: Boolean
                       name: 'noSmallTalk'
@@ -391,6 +394,7 @@ properties:
                       name: contextFilterSettings
                       description: |
                         Determines how recent conversation context is filtered when generating suggestions. If unspecified, no messages will be dropped.
+                      custom_flatten: 'templates/terraform/custom_flatten/conversation_profile_context_filter_settings.go.tmpl'
                       properties:
                         - type: Boolean
                           name: 'dropHandoffMessages'
@@ -592,6 +596,7 @@ properties:
           - JSON
   - type: NestedObject
     name: 'loggingConfig'
+    custom_flatten: 'templates/terraform/custom_flatten/conversation_profile_stack_driver.go.tmpl'
     description: |
       Defines logging behavior for conversation lifecycle events.
     properties:

@@ -383,10 +383,10 @@ return acctest.Nprintf(`
       account_number = "01"
     }
 		#salesforce_live_agent_config {
-		#      button_id       = "button"
-		#      deployment_id   = "id"
-		#      endpoint_domain = "domain"
-		#      organization_id = "org_id"
+		#      button_id       = "button2"
+		#      deployment_id   = "id2"
+		#      endpoint_domain = "domain2"
+		#      organization_id = "org_id2"
 		#}
   }
   logging_config {
@@ -402,5 +402,361 @@ return acctest.Nprintf(`
   }
   security_settings = "projects/gryphon-operations-kmatthews/locations/global/securitySettings/3bff22a0a17aabb2"
 	}
+	`, context)
+}
+func TestAccDialogflowConversationProfile_update_knowledgebase(t *testing.T) {
+	t.Parallel()
+
+	context := map[string]interface{}{
+		"org_id":          envvar.GetTestOrgFromEnv(t),
+		"billing_account": envvar.GetTestBillingAccountFromEnv(t),
+		"random_suffix":   acctest.RandString(t, 10),
+	}
+
+	acctest.VcrTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest.AccTestPreCheck(t) },
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories(t),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDialogflowConversationProfile_dialogflowAgentKnowledgebase1(context),
+			},
+			{
+				ResourceName:            "google_dialogflow_conversation_profile.profile",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"location"},
+			},
+			{
+				Config: testAccDialogflowConversationProfile_dialogflowAgentKnowledgebase2(context),
+			},
+			{
+				ResourceName:            "google_dialogflow_conversation_profile.profile",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"location"},
+			},
+		},
+	})
+}
+func testAccDialogflowConversationProfile_dialogflowAgentKnowledgebase1(context map[string]interface{}) string {
+return acctest.Nprintf(`
+		#	resource "google_project" "agent_project" {
+		#		name = "tf-test-dialogflow-%{random_suffix}"
+		#		project_id = "tf-test-dialogflow-%{random_suffix}"
+		#		org_id     = "%{org_id}"
+		#		billing_account = "%{billing_account}"
+		#	}
+
+		#	resource "google_project_service" "agent_project" {
+		#		project = "gryphon-operations-kmatthews"
+		#		service = "dialogflow.googleapis.com"
+		#		disable_dependent_services = false
+		#	}
+
+		#	resource "google_service_account" "dialogflow_service_account" {
+		#account_id = "tf-test-dialogflow-%{random_suffix}"
+		#	}
+
+		#	resource "google_project_iam_member" "agent_create" {
+		#		project = "gryphon-operations-kmatthews"
+		#		role    = "roles/dialogflow.admin"
+		#		member  = "serviceAccount:${google_service_account.dialogflow_service_account.email}"
+		#	}
+
+		#	resource "google_dialogflow_agent" "agent" {
+		#		project = "gryphon-operations-kmatthews"
+		#		display_name = "tf-test-agent-%{random_suffix}"
+		#		default_language_code = "en-us"
+		#		time_zone = "America/New_York"
+		#		depends_on = [google_project_iam_member.agent_create]
+		#	}
+resource "google_dialogflow_conversation_profile" "profile" {
+		display_name  = "tf-test-conversation-profile-%{random_suffix}-new"
+
+  location = "global"
+  human_agent_assistant_config {
+    human_agent_suggestion_config {
+      feature_configs {
+        enable_event_based_suggestion = true
+        suggestion_feature {
+          type = "FAQ"
+        }
+        query_config {
+					context_filter_settings {
+						drop_handoff_messages       = false
+						drop_ivr_messages           = false
+						drop_virtual_agent_messages = false
+					}
+	knowledge_base_query_source {
+		knowledge_bases = ["projects/gryphon-operations-kmatthews/locations/global/knowledgeBases/MTIxNTkzNjM1NzY3NjY2NjA2MDk"]
+	}
+          max_results = 1
+        }
+        suggestion_trigger_settings {
+          only_end_user = true
+        }
+      }
+    }
+    message_analysis_config {
+      enable_entity_extraction  = true
+      enable_sentiment_analysis = true
+    }
+  }
+  language_code = "en-US"
+}
+	
+	`, context)
+}
+func testAccDialogflowConversationProfile_dialogflowAgentKnowledgebase2(context map[string]interface{}) string {
+return acctest.Nprintf(`
+		#	resource "google_project" "agent_project" {
+		#		name = "tf-test-dialogflow-%{random_suffix}"
+		#		project_id = "tf-test-dialogflow-%{random_suffix}"
+		#		org_id     = "%{org_id}"
+		#		billing_account = "%{billing_account}"
+		#	}
+
+		#	resource "google_project_service" "agent_project" {
+		#		project = "gryphon-operations-kmatthews"
+		#		service = "dialogflow.googleapis.com"
+		#		disable_dependent_services = false
+		#	}
+
+		#	resource "google_service_account" "dialogflow_service_account" {
+		#account_id = "tf-test-dialogflow-%{random_suffix}"
+		#	}
+
+		#	resource "google_project_iam_member" "agent_create" {
+		#		project = "gryphon-operations-kmatthews"
+		#		role    = "roles/dialogflow.admin"
+		#		member  = "serviceAccount:${google_service_account.dialogflow_service_account.email}"
+		#	}
+
+		#	resource "google_dialogflow_agent" "agent" {
+		#		project = "gryphon-operations-kmatthews"
+		#		display_name = "tf-test-agent-%{random_suffix}"
+		#		default_language_code = "en-us"
+		#		time_zone = "America/New_York"
+		#		depends_on = [google_project_iam_member.agent_create]
+		#	}
+	
+resource "google_dialogflow_conversation_profile" "profile" {
+		display_name  = "tf-test-conversation-profile-%{random_suffix}-new"
+
+  location = "global"
+  human_agent_assistant_config {
+    human_agent_suggestion_config {
+      feature_configs {
+        enable_event_based_suggestion = true
+        suggestion_feature {
+          type = "FAQ"
+        }
+        query_config {
+					context_filter_settings {
+						drop_handoff_messages       = false
+						drop_ivr_messages           = false
+						drop_virtual_agent_messages = false
+					}
+	knowledge_base_query_source {
+		knowledge_bases = ["projects/gryphon-operations-kmatthews/locations/global/knowledgeBases/MTIxNTkzNjM1NzY3NjY2NjA2MDk"]
+	}
+          max_results = 1
+        }
+        suggestion_trigger_settings {
+          only_end_user = true
+        }
+      }
+    }
+    message_analysis_config {
+      enable_entity_extraction  = true
+      enable_sentiment_analysis = true
+    }
+  }
+  language_code = "en-US"
+}
+	`, context)
+}
+func TestAccDialogflowConversationProfile_update_document(t *testing.T) {
+	t.Parallel()
+
+	context := map[string]interface{}{
+		"org_id":          envvar.GetTestOrgFromEnv(t),
+		"billing_account": envvar.GetTestBillingAccountFromEnv(t),
+		"random_suffix":   acctest.RandString(t, 10),
+	}
+
+	acctest.VcrTest(t, resource.TestCase{
+		PreCheck:                 func() { acctest.AccTestPreCheck(t) },
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories(t),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDialogflowConversationProfile_dialogflowAgentDocument1(context),
+			},
+			{
+				ResourceName:            "google_dialogflow_conversation_profile.profile",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"location"},
+			},
+			{
+				Config: testAccDialogflowConversationProfile_dialogflowAgentDocument2(context),
+			},
+			{
+				ResourceName:            "google_dialogflow_conversation_profile.profile",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"location"},
+			},
+		},
+	})
+}
+func testAccDialogflowConversationProfile_dialogflowAgentDocument1(context map[string]interface{}) string {
+return acctest.Nprintf(`
+		#	resource "google_project" "agent_project" {
+		#		name = "tf-test-dialogflow-%{random_suffix}"
+		#		project_id = "tf-test-dialogflow-%{random_suffix}"
+		#		org_id     = "%{org_id}"
+		#		billing_account = "%{billing_account}"
+		#	}
+
+		#	resource "google_project_service" "agent_project" {
+		#		project = "gryphon-operations-kmatthews"
+		#		service = "dialogflow.googleapis.com"
+		#		disable_dependent_services = false
+		#	}
+
+		#	resource "google_service_account" "dialogflow_service_account" {
+		#account_id = "tf-test-dialogflow-%{random_suffix}"
+		#	}
+
+		#	resource "google_project_iam_member" "agent_create" {
+		#		project = "gryphon-operations-kmatthews"
+		#		role    = "roles/dialogflow.admin"
+		#		member  = "serviceAccount:${google_service_account.dialogflow_service_account.email}"
+		#	}
+
+		#	resource "google_dialogflow_agent" "agent" {
+		#		project = "gryphon-operations-kmatthews"
+		#		display_name = "tf-test-agent-%{random_suffix}"
+		#		default_language_code = "en-us"
+		#		time_zone = "America/New_York"
+		#		depends_on = [google_project_iam_member.agent_create]
+		#	}
+resource "google_dialogflow_conversation_profile" "profile" {
+		display_name  = "tf-test-conversation-profile-%{random_suffix}-new"
+
+  location = "global"
+  human_agent_assistant_config {
+    human_agent_suggestion_config {
+      feature_configs {
+        enable_event_based_suggestion = false
+        suggestion_feature {
+          type = "SMART_REPLY"
+        }
+        query_config {
+					context_filter_settings {
+						drop_handoff_messages       = false
+						drop_ivr_messages           = false
+						drop_virtual_agent_messages = false
+					}
+	document_query_source {
+		documents = ["projects/ccai-shared-external/locations/global/knowledgeBases/smart_messaging_kb/documents/NzU1MDYzOTkxNzU0MjQwODE5Mg"]
+	}
+          max_results = 1
+        }
+	conversation_model_config{
+		model = "projects/ccai-shared-external/locations/global/conversationModels/c671dd72c5e4656f"
+	}
+        suggestion_trigger_settings {
+          only_end_user = true
+        }
+      }
+    }
+    message_analysis_config {
+      enable_entity_extraction  = true
+      enable_sentiment_analysis = true
+    }
+  }
+  logging_config {
+    enable_stackdriver_logging = true
+  }
+  language_code = "en-US"
+}
+	
+	`, context)
+}
+func testAccDialogflowConversationProfile_dialogflowAgentDocument2(context map[string]interface{}) string {
+return acctest.Nprintf(`
+		#	resource "google_project" "agent_project" {
+		#		name = "tf-test-dialogflow-%{random_suffix}"
+		#		project_id = "tf-test-dialogflow-%{random_suffix}"
+		#		org_id     = "%{org_id}"
+		#		billing_account = "%{billing_account}"
+		#	}
+
+		#	resource "google_project_service" "agent_project" {
+		#		project = "gryphon-operations-kmatthews"
+		#		service = "dialogflow.googleapis.com"
+		#		disable_dependent_services = false
+		#	}
+
+		#	resource "google_service_account" "dialogflow_service_account" {
+		#account_id = "tf-test-dialogflow-%{random_suffix}"
+		#	}
+
+		#	resource "google_project_iam_member" "agent_create" {
+		#		project = "gryphon-operations-kmatthews"
+		#		role    = "roles/dialogflow.admin"
+		#		member  = "serviceAccount:${google_service_account.dialogflow_service_account.email}"
+		#	}
+
+		#	resource "google_dialogflow_agent" "agent" {
+		#		project = "gryphon-operations-kmatthews"
+		#		display_name = "tf-test-agent-%{random_suffix}"
+		#		default_language_code = "en-us"
+		#		time_zone = "America/New_York"
+		#		depends_on = [google_project_iam_member.agent_create]
+		#	}
+	
+resource "google_dialogflow_conversation_profile" "profile" {
+		display_name  = "tf-test-conversation-profile-%{random_suffix}-new"
+
+  location = "global"
+  human_agent_assistant_config {
+    human_agent_suggestion_config {
+      feature_configs {
+        enable_event_based_suggestion = false
+        suggestion_feature {
+          type = "SMART_REPLY"
+        }
+        query_config {
+					context_filter_settings {
+						drop_handoff_messages       = false
+						drop_ivr_messages           = false
+						drop_virtual_agent_messages = false
+					}
+	document_query_source {
+		documents = ["projects/ccai-shared-external/locations/global/knowledgeBases/smart_messaging_kb/documents/NzU1MDYzOTkxNzU0MjQwODE5Mg"]
+	}
+          max_results = 1
+        }
+	conversation_model_config{
+		model = "projects/ccai-shared-external/locations/global/conversationModels/c671dd72c5e4656f"
+	}
+        suggestion_trigger_settings {
+          only_end_user = true
+        }
+      }
+    }
+    message_analysis_config {
+      enable_entity_extraction  = true
+      enable_sentiment_analysis = true
+    }
+  }
+  logging_config {
+    enable_stackdriver_logging = true
+  }
+  language_code = "en-US"
+}
 	`, context)
 }
