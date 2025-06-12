@@ -539,43 +539,12 @@ properties:
         name: livePersonConfig
         description: |
           Config for using LivePerson.
-        exactly_one_of:
-          - humanAgentHandoffConfig.livePersonConfig
-          - humanAgentHandoffConfig.salesforceLiveAgentConfig
         properties:
           - type: String
             name: 'accountNumber'
             required: true
             description: |
               Account number of the LivePerson account to connect.
-      - type: NestedObject
-        name: salesforceLiveAgentConfig
-        description: |
-          Config for using a Salesforce Live agent
-        exactly_one_of:
-          - humanAgentHandoffConfig.livePersonConfig
-          - humanAgentHandoffConfig.salesforceLiveAgentConfig
-        properties:
-          - type: String
-            name: 'organizationId'
-            required: true
-            description: |
-              The organization ID of the Salesforce account.
-          - type: String
-            name: 'deploymentId'
-            required: true
-            description: |
-              Live Agent deployment ID.
-          - type: String
-            name: 'buttonId'
-            required: true
-            description: |
-              Live Agent chat button ID.
-          - type: String
-            name: 'endpointDomain'
-            required: true
-            description: |
-              Domain of the Live Agent endpoint for this agent.
   - type: NestedObject
     name: 'notificationConfig'
     description: |

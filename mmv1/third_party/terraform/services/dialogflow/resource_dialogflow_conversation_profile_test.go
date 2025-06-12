@@ -62,45 +62,48 @@ func TestAccDialogflowConversationProfile_update(t *testing.T) {
 //Flip topics from leftover topics to resources within this tf
 func testAccDialogflowConversationProfile_dialogflowAgentFull1(context map[string]interface{}) string {
 return acctest.Nprintf(`
-		#	resource "google_project" "agent_project" {
-		#		name = "tf-test-dialogflow-%{random_suffix}"
-		#		project_id = "tf-test-dialogflow-%{random_suffix}"
-		#		org_id     = "%{org_id}"
-		#		billing_account = "%{billing_account}"
-		#	}
+			resource "google_project" "agent_project" {
+				name = "tf-test-dialogflow-%{random_suffix}"
+				project_id = "tf-test-dialogflow-%{random_suffix}"
+				org_id     = "%{org_id}"
+				billing_account = "%{billing_account}"
+			}
 
-		#	resource "google_project_service" "agent_project" {
-		#		project = "gryphon-operations-kmatthews"
-		#		service = "dialogflow.googleapis.com"
-		#		disable_dependent_services = false
-		#	}
+			resource "google_project_service" "agent_project" {
+				project = "${google_project.agent_project.id}"
+				service = "dialogflow.googleapis.com"
+				disable_dependent_services = false
+			}
 
-		#	resource "google_service_account" "dialogflow_service_account" {
-		#account_id = "tf-test-dialogflow-%{random_suffix}"
-		#	}
+			resource "google_service_account" "dialogflow_service_account" {
+		account_id = "tf-test-dialogflow-%{random_suffix}"
+			}
 
-		#	resource "google_project_iam_member" "agent_create" {
-		#		project = "gryphon-operations-kmatthews"
-		#		role    = "roles/dialogflow.admin"
-		#		member  = "serviceAccount:${google_service_account.dialogflow_service_account.email}"
-		#	}
+			resource "google_project_iam_member" "agent_create" {
+				project = "${google_project.agent_project.id}"
+				role    = "roles/dialogflow.admin"
+				member  = "serviceAccount:${google_service_account.dialogflow_service_account.email}"
+			}
 
-		#	resource "google_dialogflow_agent" "agent" {
-		#		project = "gryphon-operations-kmatthews"
-		#		display_name = "tf-test-agent-%{random_suffix}"
-		#		default_language_code = "en-us"
-		#		time_zone = "America/New_York"
-		#		depends_on = [google_project_iam_member.agent_create]
-		#	}
+			resource "google_dialogflow_agent" "agent" {
+				project = "${google_project.agent_project.id}"
+				display_name = "tf-test-agent-%{random_suffix}"
+				default_language_code = "en-us"
+				time_zone = "America/New_York"
+				depends_on = [google_project_iam_member.agent_create]
+			}
+	resouce "google_pubsub_topic" "topic" {
+		name = "tf-test-topic-%{random_suffix}"
+	}
 	
 	resource "google_dialogflow_conversation_profile" "profile" {
-		#depends_on    = [google_dialogflow_agent.agent]
-		project       = "gryphon-operations-kmatthews"
+		depends_on    = [google_dialogflow_agent.agent]
+		project       = google_project.agent_project.id
 		display_name  = "tf-test-conversation-profile-%{random_suffix}"
 		location = "global"
 		language_code = "en-US"
         	automated_agent_config {
-            		agent = "projects/gryphon-operations-kmatthews/locations/global/agent/environments/draft"
+            		agent = google_dialogflow_agent.agent.id
 	    		session_ttl = "30s"
         	}
 		human_agent_assistant_config {
@@ -108,7 +111,7 @@ return acctest.Nprintf(`
 				disable_high_latency_features_sync_delivery = true
 				feature_configs {
 					conversation_model_config {
-						model                  = "projects/gryphon-operations-kmatthews/locations/global/conversationModels/43277ed5ce78441d"
+						model                  = "projects/${google_project.agent_project.id}/locations/global/conversationModels/43277ed5ce78441d"
 					}
 					conversation_process_config {
 						recent_sentences_count = 1 
@@ -126,9 +129,9 @@ return acctest.Nprintf(`
 							drop_virtual_agent_messages = true
 						}
 						dialogflow_query_source {
-							agent = "projects/gryphon-operations-kmatthews/locations/global/agent/environments/draft"
+							agent = "projects/${google_project.agent_project.id}/locations/global/agent/environments/draft"
 							human_agent_side_config {
-								agent = "projects/gryphon-operations-kmatthews/locations/global/agent/environments/draft"
+								agent = "projects/${google_project.agent_project.id}/locations/global/agent/environments/draft"
 							}
 						}
 						max_results = 1 
@@ -144,14 +147,14 @@ return acctest.Nprintf(`
 						only_end_user = true
 					}
 				}
-				generators                  = ["projects/gryphon-operations-kmatthews/locations/global/generators/NDM5MDEwODcyNDM0NjIyNDY0MQ"]
+				generators                  = ["projects/${google_project.agent_project.id}/locations/global/generators/NDM5MDEwODcyNDM0NjIyNDY0MQ"]
 				group_suggestion_responses = true
 			}
 		human_agent_suggestion_config {
 			disable_high_latency_features_sync_delivery = true
 			feature_configs {
 				conversation_model_config {
-					model                  = "projects/gryphon-operations-kmatthews/locations/global/conversationModels/43277ed5ce78441d"
+					model                  = "projects/${google_project.agent_project.id}/locations/global/conversationModels/43277ed5ce78441d"
 				}
 				conversation_process_config {
 					recent_sentences_count = 1
@@ -169,9 +172,9 @@ return acctest.Nprintf(`
 						drop_virtual_agent_messages = true
 					}
 	  				dialogflow_query_source {
-						agent = "projects/gryphon-operations-kmatthews/locations/global/agent/environments/draft"
+						agent = "projects/${google_project.agent_project.id}/locations/global/agent/environments/draft"
 						human_agent_side_config {
-							agent = "projects/gryphon-operations-kmatthews/locations/global/agent/environments/draft"
+							agent = "projects/${google_project.agent_project.id}/locations/global/agent/environments/draft"
 						}
 					}
 					max_results = 1
@@ -187,37 +190,31 @@ return acctest.Nprintf(`
 					only_end_user = true
 				}
 			}
-			generators                  = ["projects/gryphon-operations-kmatthews/locations/global/generators/NDM5MDEwODcyNDM0NjIyNDY0MQ"]
+			generators                  = ["projects/${google_project.agent_project.id}/locations/global/generators/NDM5MDEwODcyNDM0NjIyNDY0MQ"]
 			group_suggestion_responses = true
 		}
 		notification_config {
 			message_format = "JSON"
-		topic          = "projects/gryphon-operations-kmatthews/topics/container-analysis-notes-v1"
+		topic          = google_pubsub_topic.topic.id
 		}
 		}
   human_agent_handoff_config {
     live_person_config {
       account_number = "00"
     }
-		#salesforce_live_agent_config {
-		#      button_id       = "button"
-		#      deployment_id   = "id"
-		#      endpoint_domain = "domain"
-		#      organization_id = "org_id"
-		#}
   }
   logging_config {
     enable_stackdriver_logging = true
   }
   new_message_event_notification_config {
     message_format = "JSON"
-    topic          = "projects/gryphon-operations-kmatthews/topics/container-analysis-notes-v1"
+    topic          = google_pubsub_topic.topic.id
   }
   notification_config {
     message_format = "JSON"
-    topic          = "projects/gryphon-operations-kmatthews/topics/container-analysis-notes-v1"
+    topic          = google_pubsub_topic.topic.id
   }
-  security_settings = "projects/gryphon-operations-kmatthews/locations/global/securitySettings/8eb9889250e643b1"
+  security_settings = "projects/${google_project.agent_project.id}/locations/global/securitySettings/8eb9889250e643b1"
   stt_config {
     enable_word_info              = true
     language_code                 = "en-US"
@@ -226,8 +223,6 @@ return acctest.Nprintf(`
     speech_model_variant          = "USE_ENHANCED"
     use_timeout_based_endpointing = true
   }
-		#TODO why is this not reflected?
-		#time_zone = "Europe/Paris"
   tts_config {
     effects_profile_id = ["id"]
     pitch              = 1
@@ -244,45 +239,48 @@ return acctest.Nprintf(`
 }
 func testAccDialogflowConversationProfile_dialogflowAgentFull2(context map[string]interface{}) string {
 return acctest.Nprintf(`
-		#	resource "google_project" "agent_project" {
-		#		name = "tf-test-dialogflow-%{random_suffix}"
-		#		project_id = "tf-test-dialogflow-%{random_suffix}"
-		#		org_id     = "%{org_id}"
-		#		billing_account = "%{billing_account}"
-		#	}
+			resource "google_project" "agent_project" {
+				name = "tf-test-dialogflow-%{random_suffix}"
+				project_id = "tf-test-dialogflow-%{random_suffix}"
+				org_id     = "%{org_id}"
+				billing_account = "%{billing_account}"
+			}
 
-		#	resource "google_project_service" "agent_project" {
-		#		project = "gryphon-operations-kmatthews"
-		#		service = "dialogflow.googleapis.com"
-		#		disable_dependent_services = false
-		#	}
+			resource "google_project_service" "agent_project" {
+				project = "${google_project.agent_project.id}"
+				service = "dialogflow.googleapis.com"
+				disable_dependent_services = false
+			}
 
-		#	resource "google_service_account" "dialogflow_service_account" {
-		#account_id = "tf-test-dialogflow-%{random_suffix}"
-		#	}
+			resource "google_service_account" "dialogflow_service_account" {
+				account_id = "tf-test-dialogflow-%{random_suffix}"
+			}
 
-		#	resource "google_project_iam_member" "agent_create" {
-		#		project = "gryphon-operations-kmatthews"
-		#		role    = "roles/dialogflow.admin"
-		#		member  = "serviceAccount:${google_service_account.dialogflow_service_account.email}"
-		#	}
+			resource "google_project_iam_member" "agent_create" {
+				project = "${google_project.agent_project.id}"
+				role    = "roles/dialogflow.admin"
+				member  = "serviceAccount:${google_service_account.dialogflow_service_account.email}"
+			}
 
-		#	resource "google_dialogflow_agent" "agent" {
-		#		project = "gryphon-operations-kmatthews"
-		#		display_name = "tf-test-agent-%{random_suffix}"
-		#		default_language_code = "en-us"
-		#		time_zone = "America/New_York"
-		#		depends_on = [google_project_iam_member.agent_create]
-		#	}
+			resource "google_dialogflow_agent" "agent" {
+				project = "${google_project.agent_project.id}"
+				display_name = "tf-test-agent-%{random_suffix}"
+				default_language_code = "en-us"
+				time_zone = "America/New_York"
+				depends_on = [google_project_iam_member.agent_create]
+			}
+	resouce "google_pubsub_topic" "topic" {
+		name = "tf-test-topic-%{random_suffix}-diff"
+	}
 	
 	resource "google_dialogflow_conversation_profile" "profile" {
 		#depends_on    = [google_dialogflow_agent.agent]
-		project       = "gryphon-operations-kmatthews"
+		project       = "${google_project.agent_project.id}"
 		display_name  = "tf-test-conversation-profile-%{random_suffix}-new"
 		location = "global"
 		language_code = "fr"
         	automated_agent_config {
-            		agent = "projects/gryphon-operations-kmatthews/locations/global/agent/environments/draft2"
+            		agent = "projects/${google_project.agent_project.id}/locations/global/agent/environments/draft2"
 	    		session_ttl = "31s"
         	}
 		human_agent_assistant_config {
@@ -290,7 +288,7 @@ return acctest.Nprintf(`
 				disable_high_latency_features_sync_delivery = false
 				feature_configs {
 					conversation_model_config {
-						model                  = "projects/gryphon-operations-kmatthews/locations/global/conversationModels/34498444b41199d4"
+						model                  = "projects/${google_project.agent_project.id}/locations/global/conversationModels/34498444b41199d4"
 					}
 					conversation_process_config {
 						recent_sentences_count = 2 
@@ -308,9 +306,9 @@ return acctest.Nprintf(`
 							drop_virtual_agent_messages = false
 						}
 						dialogflow_query_source {
-							agent = "projects/gryphon-operations-kmatthews/locations/global/agent/environments/draft2"
+							agent = "projects/${google_project.agent_project.id}/locations/global/agent/environments/draft2"
 							human_agent_side_config {
-								agent = "projects/gryphon-operations-kmatthews/locations/global/agent/environments/draft2"
+								agent = "projects/${google_project.agent_project.id}/locations/global/agent/environments/draft2"
 							}
 						}
 						max_results = 2 
@@ -326,14 +324,14 @@ return acctest.Nprintf(`
 						only_end_user = false
 					}
 				}
-				generators                  = ["projects/gryphon-operations-kmatthews/locations/global/generators/MTM4Mzk2MTA3MjA2MTU5MjM3MTM"]
+				generators                  = ["projects/${google_project.agent_project.id}/locations/global/generators/MTM4Mzk2MTA3MjA2MTU5MjM3MTM"]
 				group_suggestion_responses = false
 			}
 		human_agent_suggestion_config {
 			disable_high_latency_features_sync_delivery = false
 			feature_configs {
 				conversation_model_config {
-					model                  = "projects/gryphon-operations-kmatthews/locations/global/conversationModels/43277ed5ce78441d"
+					model                  = "projects/${google_project.agent_project.id}/locations/global/conversationModels/43277ed5ce78441d"
 				}
 				conversation_process_config {
 					recent_sentences_count = 2
@@ -351,9 +349,9 @@ return acctest.Nprintf(`
 						drop_virtual_agent_messages = false
 					}
 	  				dialogflow_query_source {
-						agent = "projects/gryphon-operations-kmatthews/locations/global/agent/environments/draft2"
+						agent = "projects/${google_project.agent_project.id}/locations/global/agent/environments/draft2"
 						human_agent_side_config {
-							agent = "projects/gryphon-operations-kmatthews/locations/global/agent/environments/draft2"
+							agent = "projects/${google_project.agent_project.id}/locations/global/agent/environments/draft2"
 						}
 					}
 					max_results = 2
@@ -369,38 +367,31 @@ return acctest.Nprintf(`
 					only_end_user = false
 				}
 			}
-			generators                  = ["projects/gryphon-operations-kmatthews/locations/global/generators/MTM4Mzk2MTA3MjA2MTU5MjM3MTM"]
+			generators                  = ["projects/${google_project.agent_project.id}/locations/global/generators/MTM4Mzk2MTA3MjA2MTU5MjM3MTM"]
 			group_suggestion_responses = false
 		}
 		notification_config {
 			message_format = "PROTO"
-		#TODO remove dummy topic with 
-		topic          = "projects/gryphon-operations-kmatthews/topics/container-analysis-occurrences-v1"
+		topic          = google_pubsub_topic.topic.id
 		}
 		}
   human_agent_handoff_config {
     live_person_config {
       account_number = "01"
     }
-		#salesforce_live_agent_config {
-		#      button_id       = "button2"
-		#      deployment_id   = "id2"
-		#      endpoint_domain = "domain2"
-		#      organization_id = "org_id2"
-		#}
   }
   logging_config {
     enable_stackdriver_logging = false
   }
   new_message_event_notification_config {
     message_format = "PROTO"
-    topic          = "projects/gryphon-operations-kmatthews/topics/container-analysis-occurrences-v1"
+    topic          = google_pubsub_topic.topic.id
   }
   notification_config {
     message_format = "PROTO"
-    topic          = "projects/gryphon-operations-kmatthews/topics/container-analysis-occurrences-v1"
+    topic          = google_pubsub_topic.topic.id
   }
-  security_settings = "projects/gryphon-operations-kmatthews/locations/global/securitySettings/3bff22a0a17aabb2"
+  security_settings = "projects/${google_project.agent_project.id}/locations/global/securitySettings/3bff22a0a17aabb2"
 	}
 	`, context)
 }
@@ -440,36 +431,36 @@ func TestAccDialogflowConversationProfile_update_knowledgebase(t *testing.T) {
 }
 func testAccDialogflowConversationProfile_dialogflowAgentKnowledgebase1(context map[string]interface{}) string {
 return acctest.Nprintf(`
-		#	resource "google_project" "agent_project" {
-		#		name = "tf-test-dialogflow-%{random_suffix}"
-		#		project_id = "tf-test-dialogflow-%{random_suffix}"
-		#		org_id     = "%{org_id}"
-		#		billing_account = "%{billing_account}"
-		#	}
+			resource "google_project" "agent_project" {
+				name = "tf-test-dialogflow-%{random_suffix}"
+				project_id = "tf-test-dialogflow-%{random_suffix}"
+				org_id     = "%{org_id}"
+				billing_account = "%{billing_account}"
+			}
 
-		#	resource "google_project_service" "agent_project" {
-		#		project = "gryphon-operations-kmatthews"
-		#		service = "dialogflow.googleapis.com"
-		#		disable_dependent_services = false
-		#	}
+			resource "google_project_service" "agent_project" {
+				project = "${google_project.agent_project.id}"
+				service = "dialogflow.googleapis.com"
+				disable_dependent_services = false
+			}
 
-		#	resource "google_service_account" "dialogflow_service_account" {
-		#account_id = "tf-test-dialogflow-%{random_suffix}"
-		#	}
+			resource "google_service_account" "dialogflow_service_account" {
+				account_id = "tf-test-dialogflow-%{random_suffix}"
+			}
 
-		#	resource "google_project_iam_member" "agent_create" {
-		#		project = "gryphon-operations-kmatthews"
-		#		role    = "roles/dialogflow.admin"
-		#		member  = "serviceAccount:${google_service_account.dialogflow_service_account.email}"
-		#	}
+			resource "google_project_iam_member" "agent_create" {
+				project = "${google_project.agent_project.id}"
+				role    = "roles/dialogflow.admin"
+				member  = "serviceAccount:${google_service_account.dialogflow_service_account.email}"
+			}
 
-		#	resource "google_dialogflow_agent" "agent" {
-		#		project = "gryphon-operations-kmatthews"
-		#		display_name = "tf-test-agent-%{random_suffix}"
-		#		default_language_code = "en-us"
-		#		time_zone = "America/New_York"
-		#		depends_on = [google_project_iam_member.agent_create]
-		#	}
+			resource "google_dialogflow_agent" "agent" {
+				project = "${google_project.agent_project.id}"
+				display_name = "tf-test-agent-%{random_suffix}"
+				default_language_code = "en-us"
+				time_zone = "America/New_York"
+				depends_on = [google_project_iam_member.agent_create]
+			}
 resource "google_dialogflow_conversation_profile" "profile" {
 		display_name  = "tf-test-conversation-profile-%{random_suffix}-new"
 
@@ -488,7 +479,7 @@ resource "google_dialogflow_conversation_profile" "profile" {
 						drop_virtual_agent_messages = false
 					}
 	knowledge_base_query_source {
-		knowledge_bases = ["projects/gryphon-operations-kmatthews/locations/global/knowledgeBases/MTIxNTkzNjM1NzY3NjY2NjA2MDk"]
+		knowledge_bases = ["projects/${google_project.agent_project.id}/locations/global/knowledgeBases/MTIxNTkzNjM1NzY3NjY2NjA2MDk"]
 	}
           max_results = 1
         }
@@ -502,6 +493,9 @@ resource "google_dialogflow_conversation_profile" "profile" {
       enable_sentiment_analysis = true
     }
   }
+  logging_config {
+    enable_stackdriver_logging = true
+  }
   language_code = "en-US"
 }
 	
@@ -509,36 +503,36 @@ resource "google_dialogflow_conversation_profile" "profile" {
 }
 func testAccDialogflowConversationProfile_dialogflowAgentKnowledgebase2(context map[string]interface{}) string {
 return acctest.Nprintf(`
-		#	resource "google_project" "agent_project" {
-		#		name = "tf-test-dialogflow-%{random_suffix}"
-		#		project_id = "tf-test-dialogflow-%{random_suffix}"
-		#		org_id     = "%{org_id}"
-		#		billing_account = "%{billing_account}"
-		#	}
+		resource "google_project" "agent_project" {
+				name = "tf-test-dialogflow-%{random_suffix}"
+				project_id = "tf-test-dialogflow-%{random_suffix}"
+				org_id     = "%{org_id}"
+				billing_account = "%{billing_account}"
+			}
 
-		#	resource "google_project_service" "agent_project" {
-		#		project = "gryphon-operations-kmatthews"
-		#		service = "dialogflow.googleapis.com"
-		#		disable_dependent_services = false
-		#	}
+			resource "google_project_service" "agent_project" {
+				project = "${google_project.agent_project.id}"
+				service = "dialogflow.googleapis.com"
+				disable_dependent_services = false
+			}
 
-		#	resource "google_service_account" "dialogflow_service_account" {
-		#account_id = "tf-test-dialogflow-%{random_suffix}"
-		#	}
+			resource "google_service_account" "dialogflow_service_account" {
+		account_id = "tf-test-dialogflow-%{random_suffix}"
+			}
 
-		#	resource "google_project_iam_member" "agent_create" {
-		#		project = "gryphon-operations-kmatthews"
-		#		role    = "roles/dialogflow.admin"
-		#		member  = "serviceAccount:${google_service_account.dialogflow_service_account.email}"
-		#	}
+			resource "google_project_iam_member" "agent_create" {
+				project = "${google_project.agent_project.id}"
+				role    = "roles/dialogflow.admin"
+				member  = "serviceAccount:${google_service_account.dialogflow_service_account.email}"
+			}
 
-		#	resource "google_dialogflow_agent" "agent" {
-		#		project = "gryphon-operations-kmatthews"
-		#		display_name = "tf-test-agent-%{random_suffix}"
-		#		default_language_code = "en-us"
-		#		time_zone = "America/New_York"
-		#		depends_on = [google_project_iam_member.agent_create]
-		#	}
+			resource "google_dialogflow_agent" "agent" {
+				project = "${google_project.agent_project.id}"
+				display_name = "tf-test-agent-%{random_suffix}"
+				default_language_code = "en-us"
+				time_zone = "America/New_York"
+				depends_on = [google_project_iam_member.agent_create]
+			}
 	
 resource "google_dialogflow_conversation_profile" "profile" {
 		display_name  = "tf-test-conversation-profile-%{random_suffix}-new"
@@ -558,7 +552,7 @@ resource "google_dialogflow_conversation_profile" "profile" {
 						drop_virtual_agent_messages = false
 					}
 	knowledge_base_query_source {
-		knowledge_bases = ["projects/gryphon-operations-kmatthews/locations/global/knowledgeBases/MTIxNTkzNjM1NzY3NjY2NjA2MDk"]
+		knowledge_bases = ["projects/${google_project.agent_project.id}/locations/global/knowledgeBases/MTIxNTkzNjM1NzY3NjY2NjA2MDk"]
 	}
           max_results = 1
         }
@@ -571,6 +565,9 @@ resource "google_dialogflow_conversation_profile" "profile" {
       enable_entity_extraction  = true
       enable_sentiment_analysis = true
     }
+  }
+  logging_config {
+    enable_stackdriver_logging = true
   }
   language_code = "en-US"
 }
@@ -612,36 +609,36 @@ func TestAccDialogflowConversationProfile_update_document(t *testing.T) {
 }
 func testAccDialogflowConversationProfile_dialogflowAgentDocument1(context map[string]interface{}) string {
 return acctest.Nprintf(`
-		#	resource "google_project" "agent_project" {
-		#		name = "tf-test-dialogflow-%{random_suffix}"
-		#		project_id = "tf-test-dialogflow-%{random_suffix}"
-		#		org_id     = "%{org_id}"
-		#		billing_account = "%{billing_account}"
-		#	}
+			resource "google_project" "agent_project" {
+				name = "tf-test-dialogflow-%{random_suffix}"
+				project_id = "tf-test-dialogflow-%{random_suffix}"
+				org_id     = "%{org_id}"
+				billing_account = "%{billing_account}"
+			}
 
-		#	resource "google_project_service" "agent_project" {
-		#		project = "gryphon-operations-kmatthews"
-		#		service = "dialogflow.googleapis.com"
-		#		disable_dependent_services = false
-		#	}
+			resource "google_project_service" "agent_project" {
+				project = "${google_project.agent_project.id}"
+				service = "dialogflow.googleapis.com"
+				disable_dependent_services = false
+			}
 
-		#	resource "google_service_account" "dialogflow_service_account" {
-		#account_id = "tf-test-dialogflow-%{random_suffix}"
-		#	}
+			resource "google_service_account" "dialogflow_service_account" {
+		account_id = "tf-test-dialogflow-%{random_suffix}"
+			}
 
-		#	resource "google_project_iam_member" "agent_create" {
-		#		project = "gryphon-operations-kmatthews"
-		#		role    = "roles/dialogflow.admin"
-		#		member  = "serviceAccount:${google_service_account.dialogflow_service_account.email}"
-		#	}
+			resource "google_project_iam_member" "agent_create" {
+				project = "${google_project.agent_project.id}"
+				role    = "roles/dialogflow.admin"
+				member  = "serviceAccount:${google_service_account.dialogflow_service_account.email}"
+			}
 
-		#	resource "google_dialogflow_agent" "agent" {
-		#		project = "gryphon-operations-kmatthews"
-		#		display_name = "tf-test-agent-%{random_suffix}"
-		#		default_language_code = "en-us"
-		#		time_zone = "America/New_York"
-		#		depends_on = [google_project_iam_member.agent_create]
-		#	}
+			resource "google_dialogflow_agent" "agent" {
+				project = "${google_project.agent_project.id}"
+				display_name = "tf-test-agent-%{random_suffix}"
+				default_language_code = "en-us"
+				time_zone = "America/New_York"
+				depends_on = [google_project_iam_member.agent_create]
+			}
 resource "google_dialogflow_conversation_profile" "profile" {
 		display_name  = "tf-test-conversation-profile-%{random_suffix}-new"
 
@@ -687,36 +684,36 @@ resource "google_dialogflow_conversation_profile" "profile" {
 }
 func testAccDialogflowConversationProfile_dialogflowAgentDocument2(context map[string]interface{}) string {
 return acctest.Nprintf(`
-		#	resource "google_project" "agent_project" {
-		#		name = "tf-test-dialogflow-%{random_suffix}"
-		#		project_id = "tf-test-dialogflow-%{random_suffix}"
-		#		org_id     = "%{org_id}"
-		#		billing_account = "%{billing_account}"
-		#	}
+			resource "google_project" "agent_project" {
+				name = "tf-test-dialogflow-%{random_suffix}"
+				project_id = "tf-test-dialogflow-%{random_suffix}"
+				org_id     = "%{org_id}"
+				billing_account = "%{billing_account}"
+			}
 
-		#	resource "google_project_service" "agent_project" {
-		#		project = "gryphon-operations-kmatthews"
-		#		service = "dialogflow.googleapis.com"
-		#		disable_dependent_services = false
-		#	}
+			resource "google_project_service" "agent_project" {
+				project = "${google_project.agent_project.id}"
+				service = "dialogflow.googleapis.com"
+				disable_dependent_services = false
+			}
 
-		#	resource "google_service_account" "dialogflow_service_account" {
-		#account_id = "tf-test-dialogflow-%{random_suffix}"
-		#	}
+			resource "google_service_account" "dialogflow_service_account" {
+		account_id = "tf-test-dialogflow-%{random_suffix}"
+			}
 
-		#	resource "google_project_iam_member" "agent_create" {
-		#		project = "gryphon-operations-kmatthews"
-		#		role    = "roles/dialogflow.admin"
-		#		member  = "serviceAccount:${google_service_account.dialogflow_service_account.email}"
-		#	}
+			resource "google_project_iam_member" "agent_create" {
+				project = "${google_project.agent_project.id}"
+				role    = "roles/dialogflow.admin"
+				member  = "serviceAccount:${google_service_account.dialogflow_service_account.email}"
+			}
 
-		#	resource "google_dialogflow_agent" "agent" {
-		#		project = "gryphon-operations-kmatthews"
-		#		display_name = "tf-test-agent-%{random_suffix}"
-		#		default_language_code = "en-us"
-		#		time_zone = "America/New_York"
-		#		depends_on = [google_project_iam_member.agent_create]
-		#	}
+			resource "google_dialogflow_agent" "agent" {
+				project = "${google_project.agent_project.id}"
+				display_name = "tf-test-agent-%{random_suffix}"
+				default_language_code = "en-us"
+				time_zone = "America/New_York"
+				depends_on = [google_project_iam_member.agent_create]
+			}
 	
 resource "google_dialogflow_conversation_profile" "profile" {
 		display_name  = "tf-test-conversation-profile-%{random_suffix}-new"
